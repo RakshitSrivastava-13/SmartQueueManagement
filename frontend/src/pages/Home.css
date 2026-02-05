@@ -98,6 +98,68 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
+/* Domain Selection */
+.domain-selection {
+  margin: 40px 0;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.domain-selection h3 {
+  font-size: 1.5rem;
+  margin-bottom: 24px;
+  color: white;
+}
+
+.domain-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.domain-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 30px 24px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  border: 2px solid transparent;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.domain-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  border-color: #3b82f6;
+}
+
+.domain-card .domain-icon {
+  font-size: 3.5rem;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.domain-card h4 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 8px;
+}
+
+.domain-card p {
+  font-size: 0.9rem;
+  color: #64748b;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .hero-actions .btn-primary:hover {
   transform: translateY(-3px) scale(1.02);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);

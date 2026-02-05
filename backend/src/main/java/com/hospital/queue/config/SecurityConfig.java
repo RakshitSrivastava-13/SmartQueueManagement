@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints - Patient registration and queue viewing
+                        .requestMatchers(HttpMethod.GET, "/domains/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/departments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/doctors/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/queue/**").permitAll()

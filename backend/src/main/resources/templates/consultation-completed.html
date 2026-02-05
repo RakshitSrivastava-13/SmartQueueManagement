@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultation Completed</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 0;">
+                <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; border-radius: 16px 16px 0 0; text-align: center;">
+                            <div style="display: inline-block; background-color: rgba(255,255,255,0.2); border-radius: 50%; width: 70px; height: 70px; line-height: 70px; margin-bottom: 15px;">
+                                <span style="font-size: 35px;">✅</span>
+                            </div>
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
+                                Visit Completed
+                            </h1>
+                            <p style="margin: 12px 0 0 0; color: rgba(255,255,255,0.9); font-size: 15px;">
+                                Thank you for choosing <span th:text="${domainName}">our services</span>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Greeting -->
+                    <tr>
+                        <td style="padding: 35px 40px 20px 40px;">
+                            <p style="margin: 0 0 15px 0; color: #333; font-size: 17px;">
+                                Dear <strong th:text="${patientName}">Patient Name</strong>,
+                            </p>
+                            <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.7;">
+                                Your consultation/service has been successfully completed. We hope you had a positive experience. Below is a summary of your visit for your records.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Visit Summary Card -->
+                    <tr>
+                        <td style="padding: 0 40px 25px 40px;">
+                            <h3 style="margin: 0 0 15px 0; color: #333; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                                📋 Visit Summary
+                            </h3>
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8f9fa; border-radius: 12px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e9ecef;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40%;">
+                                                                <span style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Token Number</span>
+                                                            </td>
+                                                            <td style="text-align: right;">
+                                                                <strong style="color: #667eea; font-size: 16px;" th:text="${tokenNumber}">OPD-2026-0001</strong>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e9ecef;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40%;">
+                                                                <span style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Domain</span>
+                                                            </td>
+                                                            <td style="text-align: right;">
+                                                                <strong style="color: #333; font-size: 14px;" th:text="${domainName}">Hospital</strong>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e9ecef;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40%;">
+                                                                <span style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Department</span>
+                                                            </td>
+                                                            <td style="text-align: right;">
+                                                                <strong style="color: #333; font-size: 14px;" th:text="${department}">General Medicine</strong>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0; border-bottom: 1px solid #e9ecef;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40%;">
+                                                                <span style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Service Provider</span>
+                                                            </td>
+                                                            <td style="text-align: right;">
+                                                                <strong style="color: #333; font-size: 14px;" th:text="${doctorName}">Dr. John Smith</strong>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 12px 0;">
+                                                    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                                        <tr>
+                                                            <td style="width: 40%;">
+                                                                <span style="color: #888; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Visit Date</span>
+                                                            </td>
+                                                            <td style="text-align: right;">
+                                                                <strong style="color: #333; font-size: 14px;" th:text="${consultationDate}">05 Feb 2026</strong>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Feedback Section -->
+                    <tr>
+                        <td style="padding: 0 40px 25px 40px;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); border-radius: 12px;">
+                                <tr>
+                                    <td style="padding: 25px; text-align: center;">
+                                        <p style="margin: 0 0 10px 0; font-size: 24px;">⭐⭐⭐⭐⭐</p>
+                                        <p style="margin: 0 0 8px 0; color: #4a4a4a; font-size: 16px; font-weight: 600;">
+                                            How was your experience?
+                                        </p>
+                                        <p style="margin: 0; color: #666; font-size: 13px; line-height: 1.6;">
+                                            Your feedback helps us improve our services. We'd love to hear from you!
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Next Steps -->
+                    <tr>
+                        <td style="padding: 0 40px 25px 40px;">
+                            <h3 style="margin: 0 0 15px 0; color: #333; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">
+                                📌 Next Steps
+                            </h3>
+                            <div style="padding: 20px; background-color: #e7f3ff; border-left: 4px solid #0d6efd; border-radius: 0 8px 8px 0;">
+                                <ul style="margin: 0; padding-left: 20px; color: #084298; font-size: 13px; line-height: 1.9;">
+                                    <li>Follow any instructions or prescriptions provided</li>
+                                    <li>Schedule follow-up appointments if recommended</li>
+                                    <li>Contact us if you have any questions or concerns</li>
+                                    <li>Keep this email for your records</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Health Tips (for Hospital domain) -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px;">
+                            <div style="padding: 20px; background-color: #d4edda; border-radius: 12px;">
+                                <p style="margin: 0 0 10px 0; color: #155724; font-size: 14px; font-weight: 600;">
+                                    💚 Stay Healthy!
+                                </p>
+                                <p style="margin: 0; color: #155724; font-size: 13px; line-height: 1.7;">
+                                    Remember to maintain a healthy lifestyle, stay hydrated, get adequate rest, and don't hesitate to reach out if you need any assistance. Your health is our priority!
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Thank You Message -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px; text-align: center;">
+                            <p style="margin: 0; color: #666; font-size: 15px; line-height: 1.6;">
+                                🙏 Thank you for trusting us with your care.<br>
+                                <span style="color: #888; font-size: 13px;">We look forward to serving you again!</span>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 25px 40px; background-color: #f8f9fa; border-radius: 0 0 16px 16px; text-align: center;">
+                            <p style="margin: 0 0 10px 0; color: #888; font-size: 13px;">
+                                Take care and stay well! 🌈
+                            </p>
+                            <p style="margin: 0 0 10px 0; color: #aaa; font-size: 11px;">
+                                This is an automated message from Smart Queue Management System
+                            </p>
+                            <p style="margin: 0; color: #ccc; font-size: 11px;">
+                                © 2026 Smart Queue Management. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

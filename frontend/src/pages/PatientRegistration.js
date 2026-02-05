@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { departmentAPI, doctorAPI, patientAPI, tokenAPI } from '../services/api';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { domainAPI, departmentAPI, doctorAPI, patientAPI, tokenAPI } from '../services/api';
 import './PatientRegistration.css';
 
 const PatientRegistration = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Domain state
+  const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState(location.state?.domainId || '');
+  const [selectedDomainName, setSelectedDomainName] = useState(location.state?.domainName || '');
 
   // Form data
   const [patientData, setPatientData] = useState({
@@ -32,22 +38,43 @@ const PatientRegistration = () => {
   const [existingPatient, setExistingPatient] = useState(null);
   const [generatedToken, setGeneratedToken] = useState(null);
 
+  // Fetch domains on component mount
   useEffect(() => {
-    fetchDepartments();
+    fetchDomains();
   }, []);
 
+  // Fetch departments when domain changes
+  useEffect(() => {
+    if (selectedDomain) {
+      fetchDepartmentsByDomain(selectedDomain);
+      setSelectedDepartment('');
+      setSelectedDoctor('');
+      setDoctors([]);
+    }
+  }, [selectedDomain]);
+
+  // Fetch doctors when department changes
   useEffect(() => {
     if (selectedDepartment) {
       fetchDoctors(selectedDepartment);
     }
   }, [selectedDepartment]);
 
-  const fetchDepartments = async () => {
+  const fetchDomains = async () => {
     try {
-      const response = await departmentAPI.getAll();
+      const response = await domainAPI.getAll();
+      setDomains(response.data.data || []);
+    } catch (err) {
+      setError('Failed to load domains');
+    }
+  };
+
+  const fetchDepartmentsByDomain = async (domainId) => {
+    try {
+      const response = await departmentAPI.getByDomain(domainId);
       setDepartments(response.data.data || []);
     } catch (err) {
-      setError('Failed to load departments');
+      setError('Failed to load services');
     }
   };
 
@@ -56,8 +83,15 @@ const PatientRegistration = () => {
       const response = await doctorAPI.getByDepartment(deptId);
       setDoctors(response.data.data || []);
     } catch (err) {
-      setError('Failed to load doctors');
+      setError('Failed to load service providers');
     }
+  };
+
+  const handleDomainChange = (e) => {
+    const domainId = e.target.value;
+    setSelectedDomain(domainId);
+    const domain = domains.find(d => d.id === parseInt(domainId));
+    setSelectedDomainName(domain?.name || '');
   };
 
   const handlePatientInputChange = (e) => {
@@ -115,8 +149,13 @@ const PatientRegistration = () => {
     e.preventDefault();
     setError('');
 
+    if (!selectedDomain) {
+      setError('Please select a service domain');
+      return;
+    }
+
     if (!selectedDepartment) {
-      setError('Please select a department');
+      setError('Please select a service');
       return;
     }
 
@@ -274,32 +313,69 @@ const PatientRegistration = () => {
 
   const renderStep2 = () => (
     <form onSubmit={handleStep2Submit} className="registration-form">
-      <h2>Select Department & Doctor</h2>
-      <p className="form-subtitle">Choose where you want to consult</p>
+      <h2>Select Service</h2>
+      <p className="form-subtitle">Choose your domain and service</p>
 
+      {/* Domain Selection Dropdown */}
       <div className="form-group">
-        <label className="form-label">Department *</label>
+        <label className="form-label">Service Domain *</label>
         <select
           className="form-select"
-          value={selectedDepartment}
-          onChange={(e) => {
-            setSelectedDepartment(e.target.value);
-            setSelectedDoctor('');
-          }}
+          value={selectedDomain}
+          onChange={handleDomainChange}
           required
         >
-          <option value="">Select a department</option>
-          {departments.map((dept) => (
-            <option key={dept.id} value={dept.id}>
-              {dept.name} ({dept.code})
+          <option value="">Select a domain</option>
+          {domains.map((domain) => (
+            <option key={domain.id} value={domain.id}>
+              {domain.icon} {domain.name}
             </option>
           ))}
         </select>
+        {selectedDomainName && (
+          <p className="form-hint">Selected: {selectedDomainName}</p>
+        )}
       </div>
 
+      {/* Dynamic Service/Department Dropdown - Only shows when domain is selected */}
+      {selectedDomain && (
+        <div className="form-group">
+          <label className="form-label">
+            {selectedDomainName === 'Hospital' ? 'Department' : 
+             selectedDomainName === 'Bank' ? 'Service Type' : 
+             selectedDomainName === 'Medical Store' ? 'Counter' : 'Service'} *
+          </label>
+          <select
+            className="form-select"
+            value={selectedDepartment}
+            onChange={(e) => {
+              setSelectedDepartment(e.target.value);
+              setSelectedDoctor('');
+            }}
+            required
+          >
+            <option value="">
+              Select {selectedDomainName === 'Hospital' ? 'a department' : 
+                      selectedDomainName === 'Bank' ? 'a service' : 
+                      selectedDomainName === 'Medical Store' ? 'a counter' : 'a service'}
+            </option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Service Provider Selection */}
       {doctors.length > 0 && (
         <div className="form-group">
-          <label className="form-label">Doctor (Optional)</label>
+          <label className="form-label">
+            {selectedDomainName === 'Hospital' ? 'Doctor' : 
+             selectedDomainName === 'Bank' ? 'Service Executive' : 
+             'Staff'} (Optional)
+          </label>
           <div className="doctor-grid">
             {doctors.map((doctor) => (
               <div
@@ -307,11 +383,17 @@ const PatientRegistration = () => {
                 className={`doctor-card ${selectedDoctor === String(doctor.id) ? 'selected' : ''}`}
                 onClick={() => setSelectedDoctor(String(doctor.id))}
               >
-                <div className="doctor-avatar">👨‍⚕️</div>
+                <div className="doctor-avatar">
+                  {selectedDomainName === 'Hospital' ? '👨‍⚕️' : 
+                   selectedDomainName === 'Bank' ? '👨‍💼' : '👨‍🔬'}
+                </div>
                 <div className="doctor-info">
-                  <h4>Dr. {doctor.fullName}</h4>
+                  <h4>{selectedDomainName === 'Hospital' ? 'Dr. ' : ''}{doctor.fullName}</h4>
                   <p>{doctor.specialization}</p>
-                  <p className="room">Room: {doctor.roomNumber}</p>
+                  <p className="room">
+                    {selectedDomainName === 'Hospital' ? 'Room' : 
+                     selectedDomainName === 'Bank' ? 'Counter' : 'Counter'}: {doctor.roomNumber}
+                  </p>
                   <div className="doctor-stats">
                     <span className="wait-badge">
                       ~{doctor.estimatedWaitTime} min wait

@@ -32,12 +32,19 @@ api.interceptors.response.use(
   }
 );
 
+// Domain APIs
+export const domainAPI = {
+  getAll: () => api.get('/domains'),
+  getById: (id) => api.get(`/domains/${id}`),
+};
+
 // Department APIs
 export const departmentAPI = {
   getAll: () => api.get('/departments'),
   getById: (id) => api.get(`/departments/${id}`),
   getDoctors: (id) => api.get(`/departments/${id}/doctors`),
   getAllWithDoctors: () => api.get('/departments/with-doctors'),
+  getByDomain: (domainId) => api.get(`/departments/domain/${domainId}`),
 };
 
 // Doctor APIs

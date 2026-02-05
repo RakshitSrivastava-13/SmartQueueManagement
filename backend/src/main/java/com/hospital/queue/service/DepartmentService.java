@@ -51,6 +51,13 @@ public class DepartmentService {
                 .collect(Collectors.toList());
     }
 
+    public List<DepartmentDTO> getDepartmentsByDomain(Long domainId) {
+        return departmentRepository.findByDomainIdAndIsActiveTrue(domainId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
     public List<DoctorDTO> getDoctorsByDepartment(Long departmentId) {
         return doctorRepository.findByDepartmentIdAndIsActiveTrue(departmentId)
                 .stream()

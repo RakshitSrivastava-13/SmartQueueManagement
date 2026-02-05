@@ -38,6 +38,10 @@ public class Department {
     @Builder.Default
     private Boolean isActive = true;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "domain_id")
+    private Domain domain;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

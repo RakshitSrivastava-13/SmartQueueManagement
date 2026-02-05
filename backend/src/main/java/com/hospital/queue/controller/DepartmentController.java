@@ -49,6 +49,13 @@ public class DepartmentController {
         return ResponseEntity.ok(ApiResponse.success(departments));
     }
 
+    @GetMapping("/domain/{domainId}")
+    @Operation(summary = "Get departments by domain", description = "Retrieve all departments for a specific domain")
+    public ResponseEntity<ApiResponse<List<DepartmentDTO>>> getDepartmentsByDomain(@PathVariable Long domainId) {
+        List<DepartmentDTO> departments = departmentService.getDepartmentsByDomain(domainId);
+        return ResponseEntity.ok(ApiResponse.success("Departments fetched successfully", departments));
+    }
+
     @GetMapping("/{id}/doctors")
     @Operation(summary = "Get doctors by department", description = "Retrieve all doctors in a department")
     public ResponseEntity<ApiResponse<List<DoctorDTO>>> getDoctorsByDepartment(@PathVariable Long id) {

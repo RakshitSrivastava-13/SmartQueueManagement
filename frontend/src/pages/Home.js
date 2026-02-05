@@ -1,21 +1,60 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { domainAPI } from '../services/api';
 import './Home.css';
 
 const Home = () => {
+  const navigate = useNavigate();
+  const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState(null);
+
+  useEffect(() => {
+    fetchDomains();
+  }, []);
+
+  const fetchDomains = async () => {
+    try {
+      const response = await domainAPI.getAll();
+      setDomains(response.data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch domains:', error);
+    }
+  };
+
+  const handleDomainSelect = (domain) => {
+    setSelectedDomain(domain);
+    navigate('/register', { state: { domainId: domain.id, domainName: domain.name } });
+  };
+
   return (
     <div className="home">
       <section className="hero">
         <div className="hero-content">
-          <h1>Smart Hospital Queue Management</h1>
+          <h1>Smart Queue Management System</h1>
           <p>
-            Skip the long wait times. Get your token digitally and track your
-            queue position in real-time.
+            Skip the long wait times. Select your service domain, get your token digitally, 
+            and track your queue position in real-time.
           </p>
+          
+          {/* Domain Selection */}
+          <div className="domain-selection">
+            <h3>Select Your Service Domain</h3>
+            <div className="domain-cards">
+              {domains.map((domain) => (
+                <div 
+                  key={domain.id} 
+                  className="domain-card"
+                  onClick={() => handleDomainSelect(domain)}
+                >
+                  <div className="domain-icon">{domain.icon}</div>
+                  <h4>{domain.name}</h4>
+                  <p>{domain.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="hero-actions">
-            <Link to="/register" className="btn btn-primary btn-lg">
-              Get Your Token
-            </Link>
             <Link to="/queue-board" className="btn btn-secondary btn-lg">
               View Live Queue
             </Link>

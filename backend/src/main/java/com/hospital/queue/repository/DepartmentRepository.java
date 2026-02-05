@@ -17,6 +17,8 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
     List<Department> findByIsActiveTrue();
 
+    List<Department> findByDomainIdAndIsActiveTrue(Long domainId);
+
     @Query("SELECT d FROM Department d LEFT JOIN FETCH d.doctors WHERE d.isActive = true")
     List<Department> findAllWithDoctors();
 

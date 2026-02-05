@@ -26,6 +26,8 @@ public class StaffService {
     private final TokenRepository tokenRepository;
     private final DoctorRepository doctorRepository;
     private final QueueStatusRepository queueStatusRepository;
+    private final EmailService emailService;
+    private final QueueNotificationService queueNotificationService;
 
     @Transactional
     public TokenDTO callNextPatient(Long doctorId) {
@@ -46,12 +48,15 @@ public class StaffService {
 
         updateQueueStatus(doctorId);
 
+        // Send turn notification email
+        emailService.sendTurnNotificationEmail(nextToken);
+
         return toDTO(nextToken);
     }
 
     @Transactional
     public TokenDTO startConsultation(Long tokenId) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
 
         if (token.getStatus() != Token.Status.CALLED) {
@@ -69,7 +74,7 @@ public class StaffService {
 
     @Transactional
     public TokenDTO endConsultation(Long tokenId) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
 
         if (token.getStatus() != Token.Status.IN_CONSULTATION && token.getStatus() != Token.Status.CALLED) {
@@ -85,12 +90,21 @@ public class StaffService {
 
         updateQueueStatus(token.getDoctor().getId());
 
+        // Send consultation completed email
+        emailService.sendConsultationCompletedEmail(token);
+
+        // Remove from position tracking and notify other patients in queue
+        queueNotificationService.removeFromTracking(token.getId());
+        if (token.getDoctor() != null) {
+            queueNotificationService.notifyQueueAdvancement(token.getDoctor().getId());
+        }
+
         return toDTO(token);
     }
 
     @Transactional
     public TokenDTO cancelActiveConsultation(Long tokenId) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
 
         if (token.getStatus() != Token.Status.IN_CONSULTATION && token.getStatus() != Token.Status.CALLED) {
@@ -117,7 +131,7 @@ public class StaffService {
 
     @Transactional
     public TokenDTO markNoShow(Long tokenId) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
 
         if (token.getStatus() != Token.Status.CALLED) {
@@ -129,12 +143,15 @@ public class StaffService {
 
         updateQueueStatus(token.getDoctor().getId());
 
+        // Notify other patients about queue advancement
+        queueNotificationService.notifyNoShowOrSkip(token);
+
         return toDTO(token);
     }
 
     @Transactional
     public TokenDTO markPriority(Long tokenId, String priority) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
 
         if (token.getStatus() != Token.Status.WAITING) {
@@ -146,6 +163,9 @@ public class StaffService {
             token.setPriority(newPriority);
             token.calculatePriorityScore();
             token = tokenRepository.save(token);
+            
+            // Notify affected patients about position changes due to priority update
+            queueNotificationService.notifyPriorityChange(token);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid priority: " + priority);
         }
@@ -155,7 +175,7 @@ public class StaffService {
 
     @Transactional
     public TokenDTO skipPatient(Long tokenId) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
 
         if (token.getStatus() != Token.Status.CALLED) {
@@ -169,6 +189,9 @@ public class StaffService {
         token = tokenRepository.save(token);
 
         updateQueueStatus(token.getDoctor().getId());
+
+        // Notify other patients about queue changes
+        queueNotificationService.notifyNoShowOrSkip(token);
 
         return toDTO(token);
     }

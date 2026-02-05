@@ -25,6 +25,8 @@ public class TokenService {
     private final DepartmentRepository departmentRepository;
     private final DoctorRepository doctorRepository;
     private final QueueStatusRepository queueStatusRepository;
+    private final EmailService emailService;
+    private final QueueNotificationService queueNotificationService;
 
     @Transactional
     public TokenDTO generateToken(TokenRequestDTO request) {
@@ -73,11 +75,22 @@ public class TokenService {
         // Update queue status
         updateQueueStatus(doctor != null ? doctor.getId() : null, department.getId());
 
+        // Record initial position for tracking changes
+        queueNotificationService.recordInitialPosition(token);
+
+        // Send token confirmation email
+        emailService.sendTokenConfirmationEmail(token);
+
+        // If this is a priority token, notify other patients in queue about position changes
+        if (priority != Token.Priority.NORMAL && doctor != null) {
+            queueNotificationService.notifyPriorityInsertion(doctor.getId(), token);
+        }
+
         return toDTO(token);
     }
 
     public TokenDTO getTokenById(Long id) {
-        Token token = tokenRepository.findById(id)
+        Token token = tokenRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", id));
         return toDTO(token);
     }
@@ -102,7 +115,7 @@ public class TokenService {
     }
 
     public int getEstimatedWaitTime(Long tokenId) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
         
         if (token.getDoctor() == null) {
@@ -128,7 +141,7 @@ public class TokenService {
 
     @Transactional
     public TokenDTO cancelToken(Long tokenId) {
-        Token token = tokenRepository.findById(tokenId)
+        Token token = tokenRepository.findByIdWithDetails(tokenId)
                 .orElseThrow(() -> new ResourceNotFoundException("Token", "id", tokenId));
         
         if (token.getStatus() != Token.Status.WAITING) {
@@ -142,6 +155,9 @@ public class TokenService {
         if (token.getDoctor() != null) {
             updateQueueStatus(token.getDoctor().getId(), token.getDepartment().getId());
         }
+
+        // Notify other patients about queue advancement
+        queueNotificationService.notifyTokenCancellation(token);
 
         return toDTO(token);
     }

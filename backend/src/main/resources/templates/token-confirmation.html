@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Confirmation</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 0;">
+                <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header with Logo Area -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 40px; border-radius: 16px 16px 0 0;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td>
+                                        <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">
+                                            🎫 Token Confirmed!
+                                        </h1>
+                                        <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                                            Your queue token has been generated successfully
+                                        </p>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span style="display: inline-block; padding: 8px 16px; background-color: rgba(255,255,255,0.2); border-radius: 20px; color: #fff; font-size: 12px; font-weight: 600;">
+                                            <span th:text="${domainName}">Hospital</span>
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Greeting Section -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px 40px;">
+                            <p style="margin: 0 0 10px 0; color: #333; font-size: 18px;">
+                                Dear <strong th:text="${patientName}">Patient Name</strong>,
+                            </p>
+                            <p style="margin: 0; color: #666; font-size: 14px; line-height: 1.6;">
+                                Thank you for choosing our services. Your token has been successfully generated. Please save this email for your reference.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Token Card - Main Highlight -->
+                    <tr>
+                        <td style="padding: 0 40px;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; margin-bottom: 20px;">
+                                <tr>
+                                    <td style="padding: 30px; text-align: center;">
+                                        <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.8); font-size: 11px; text-transform: uppercase; letter-spacing: 3px; font-weight: 600;">
+                                            Your Token Number
+                                        </p>
+                                        <h2 style="margin: 0; color: #ffffff; font-size: 42px; font-weight: 700; letter-spacing: 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);" th:text="${tokenNumber}">
+                                            OPD-2026-0001
+                                        </h2>
+                                        <p style="margin: 15px 0 0 0; color: rgba(255,255,255,0.9); font-size: 13px;">
+                                            📅 <span th:text="${tokenDate}">05 Feb 2026</span> &nbsp;•&nbsp; ⏰ <span th:text="${generatedAt}">10:30 AM</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Token Details Section -->
+                    <tr>
+                        <td style="padding: 20px 40px;">
+                            <h3 style="margin: 0 0 20px 0; color: #333; font-size: 16px; font-weight: 600; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                                📋 Token Details
+                            </h3>
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 15px; background-color: #f8f9fa; border-radius: 8px 0 0 0; width: 50%; vertical-align: top;">
+                                        <p style="margin: 0 0 5px 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Department / Service</p>
+                                        <p style="margin: 0; color: #333; font-size: 15px; font-weight: 600;" th:text="${department}">General Medicine</p>
+                                    </td>
+                                    <td style="padding: 15px; background-color: #f8f9fa; border-radius: 0 8px 0 0; width: 50%; vertical-align: top;">
+                                        <p style="margin: 0 0 5px 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Service Provider</p>
+                                        <p style="margin: 0; color: #333; font-size: 15px; font-weight: 600;" th:text="${doctorName}">Dr. John Smith</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 15px; background-color: #fff; border: 1px solid #e9ecef; border-top: none; border-radius: 0 0 0 8px; vertical-align: top;">
+                                        <p style="margin: 0 0 5px 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Room / Counter</p>
+                                        <p style="margin: 0; color: #333; font-size: 15px; font-weight: 600;" th:text="${roomNumber}">Room 101</p>
+                                    </td>
+                                    <td style="padding: 15px; background-color: #fff; border: 1px solid #e9ecef; border-top: none; border-left: none; border-radius: 0 0 8px 0; vertical-align: top;">
+                                        <p style="margin: 0 0 5px 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Current Position</p>
+                                        <p style="margin: 0; color: #333; font-size: 15px; font-weight: 600;" th:text="${currentPosition != null ? currentPosition : 'Processing...'}">1</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Priority Section -->
+                    <tr>
+                        <td style="padding: 0 40px 20px 40px;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 20px; background-color: #f0f4ff; border-radius: 12px; text-align: center; border: 2px dashed #667eea;">
+                                        <p style="margin: 0 0 8px 0; color: #667eea; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">Priority Level</p>
+                                        <span style="display: inline-block; padding: 10px 25px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-size: 16px; font-weight: 700; border-radius: 25px; text-transform: uppercase; letter-spacing: 1px;" th:text="${priority}">
+                                            NORMAL
+                                        </span>
+                                        <p style="margin: 12px 0 0 0; color: #666; font-size: 12px;">
+                                            <span th:if="${priority == 'NORMAL'}">Standard queue - First Come, First Served</span>
+                                            <span th:if="${priority == 'SENIOR CITIZEN'}">👴 Priority given to senior citizens (65+)</span>
+                                            <span th:if="${priority == 'PREGNANT'}">🤰 Priority given to pregnant women</span>
+                                            <span th:if="${priority == 'EMERGENCY'}">🚨 Emergency - Highest priority</span>
+                                            <span th:if="${priority == 'DIFFERENTLY ABLED'}">♿ Priority given to differently-abled individuals</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- How Queue Works Section -->
+                    <tr>
+                        <td style="padding: 0 40px 20px 40px;">
+                            <h3 style="margin: 0 0 15px 0; color: #333; font-size: 16px; font-weight: 600; border-bottom: 2px solid #17a2b8; padding-bottom: 10px;">
+                                ℹ️ How Our Queue Works
+                            </h3>
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #e8f4f8; border-radius: 12px;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <p style="margin: 0 0 12px 0; color: #0c5460; font-size: 13px; line-height: 1.7;">
+                                            <strong>🔹 Priority-Based System:</strong> Our queue operates on a priority system to ensure fair and efficient service. Certain categories receive priority:
+                                        </p>
+                                        <ul style="margin: 0 0 12px 0; padding-left: 20px; color: #0c5460; font-size: 13px; line-height: 1.8;">
+                                            <li><strong>Emergency Cases</strong> - Immediate attention required</li>
+                                            <li><strong>Senior Citizens (65+)</strong> - Priority seating</li>
+                                            <li><strong>Pregnant Women</strong> - Special consideration</li>
+                                            <li><strong>Differently-Abled</strong> - Accessibility priority</li>
+                                        </ul>
+                                        <p style="margin: 0; color: #0c5460; font-size: 13px; line-height: 1.7;">
+                                            <strong>🔹 Position Updates:</strong> Your queue position may change if a priority case arrives. We'll notify you via email with the reason for any position changes.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Important Instructions -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px;">
+                            <div style="padding: 20px; background-color: #fff3cd; border-left: 4px solid #ffc107; border-radius: 0 8px 8px 0;">
+                                <p style="margin: 0 0 10px 0; color: #856404; font-size: 14px; font-weight: 600;">
+                                    📌 Important Instructions:
+                                </p>
+                                <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 13px; line-height: 1.8;">
+                                    <li>Please arrive <strong>10-15 minutes</strong> before your estimated time</li>
+                                    <li>Keep this email or note down your token number</li>
+                                    <li>Carry valid ID proof and any relevant documents</li>
+                                    <li>You'll receive email updates as your turn approaches</li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px 40px; background-color: #f8f9fa; border-radius: 0 0 16px 16px;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <p style="margin: 0 0 10px 0; color: #666; font-size: 14px;">
+                                            Need help? Contact us at the information desk
+                                        </p>
+                                        <p style="margin: 0 0 15px 0; color: #888; font-size: 12px;">
+                                            This is an automated message from Smart Queue Management System
+                                        </p>
+                                        <p style="margin: 0; color: #aaa; font-size: 11px;">
+                                            © 2026 Smart Queue Management. All rights reserved.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

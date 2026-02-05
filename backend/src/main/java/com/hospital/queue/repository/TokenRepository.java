@@ -25,16 +25,19 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
     List<Token> findByDepartmentIdAndTokenDate(Long departmentId, LocalDate tokenDate);
 
     // Queue queries - ordered by priority and generation time
-    @Query("SELECT t FROM Token t WHERE t.doctor.id = :doctorId AND t.tokenDate = :date AND t.status IN ('WAITING', 'CALLED') " +
+    @Query("SELECT t FROM Token t JOIN FETCH t.patient JOIN FETCH t.department LEFT JOIN FETCH t.doctor " +
+           "WHERE t.doctor.id = :doctorId AND t.tokenDate = :date AND t.status IN ('WAITING', 'CALLED') " +
            "ORDER BY t.priorityScore DESC, t.generatedAt ASC")
     List<Token> findActiveQueueByDoctor(@Param("doctorId") Long doctorId, @Param("date") LocalDate date);
 
-    @Query("SELECT t FROM Token t WHERE t.department.id = :deptId AND t.tokenDate = :date AND t.status IN ('WAITING', 'CALLED') " +
+    @Query("SELECT t FROM Token t JOIN FETCH t.patient JOIN FETCH t.department LEFT JOIN FETCH t.doctor " +
+           "WHERE t.department.id = :deptId AND t.tokenDate = :date AND t.status IN ('WAITING', 'CALLED') " +
            "ORDER BY t.priorityScore DESC, t.generatedAt ASC")
     List<Token> findActiveQueueByDepartment(@Param("deptId") Long departmentId, @Param("date") LocalDate date);
 
     // Current token being served (includes CALLED and IN_CONSULTATION)
-    @Query("SELECT t FROM Token t WHERE t.doctor.id = :doctorId AND t.tokenDate = :date AND t.status IN ('CALLED', 'IN_CONSULTATION') ORDER BY t.calledAt DESC")
+    @Query("SELECT t FROM Token t JOIN FETCH t.patient JOIN FETCH t.department LEFT JOIN FETCH t.doctor " +
+           "WHERE t.doctor.id = :doctorId AND t.tokenDate = :date AND t.status IN ('CALLED', 'IN_CONSULTATION') ORDER BY t.calledAt DESC")
     Optional<Token> findCurrentTokenByDoctor(@Param("doctorId") Long doctorId, @Param("date") LocalDate date);
 
     // Find any active token (for global check)
@@ -45,7 +48,8 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
     List<Token> findCurrentTokensByDepartment(@Param("deptId") Long departmentId, @Param("date") LocalDate date);
 
     // Next waiting token
-    @Query("SELECT t FROM Token t WHERE t.doctor.id = :doctorId AND t.tokenDate = :date AND t.status = 'WAITING' " +
+    @Query("SELECT t FROM Token t JOIN FETCH t.patient JOIN FETCH t.department LEFT JOIN FETCH t.doctor " +
+           "WHERE t.doctor.id = :doctorId AND t.tokenDate = :date AND t.status = 'WAITING' " +
            "ORDER BY t.priorityScore DESC, t.generatedAt ASC LIMIT 1")
     Optional<Token> findNextWaitingTokenByDoctor(@Param("doctorId") Long doctorId, @Param("date") LocalDate date);
 
@@ -93,4 +97,20 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
 
     @Query("SELECT t.department.name, COUNT(t) FROM Token t WHERE t.tokenDate = :date GROUP BY t.department.name")
     List<Object[]> getDepartmentCountsByDate(@Param("date") LocalDate date);
+
+    // All waiting tokens for notification service
+    @Query("SELECT t FROM Token t JOIN FETCH t.patient JOIN FETCH t.department LEFT JOIN FETCH t.doctor " +
+           "WHERE t.tokenDate = :date AND t.status = 'WAITING' ORDER BY t.priorityScore DESC, t.generatedAt ASC")
+    List<Token> findAllWaitingTokensForToday(@Param("date") LocalDate date);
+
+    // Waiting tokens by doctor ordered for queue
+    @Query("SELECT t FROM Token t JOIN FETCH t.patient JOIN FETCH t.department JOIN FETCH t.doctor " +
+           "WHERE t.doctor.id = :doctorId AND t.tokenDate = :date AND t.status = 'WAITING' " +
+           "ORDER BY t.priorityScore DESC, t.generatedAt ASC")
+    List<Token> findWaitingTokensByDoctor(@Param("doctorId") Long doctorId, @Param("date") LocalDate date);
+
+    // Find token by ID with all relationships eagerly loaded
+    @Query("SELECT t FROM Token t JOIN FETCH t.patient JOIN FETCH t.department LEFT JOIN FETCH t.doctor " +
+           "WHERE t.id = :tokenId")
+    Optional<Token> findByIdWithDetails(@Param("tokenId") Long tokenId);
 }
