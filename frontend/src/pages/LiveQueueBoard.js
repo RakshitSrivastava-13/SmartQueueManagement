@@ -8,6 +8,7 @@ const LiveQueueBoard = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('all');
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   const fetchQueues = useCallback(async () => {
     try {
@@ -42,9 +43,58 @@ const LiveQueueBoard = () => {
 
   useEffect(() => {
     fetchQueues();
-    const interval = setInterval(fetchQueues, 10000); // Refresh every 10 seconds
+    const interval = setInterval(fetchQueues, 5000); // Refresh every 5 seconds for real-time updates
     return () => clearInterval(interval);
   }, [fetchQueues]);
+
+  // Update current time every second for live countdown display
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format estimated service time in HH:MM:SS format
+  const formatServiceTime = (estimatedServiceTime) => {
+    if (!estimatedServiceTime) return null;
+    const date = new Date(estimatedServiceTime);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+  };
+
+  // Check if service time is imminent (within 5 minutes)
+  const isServiceTimeUrgent = (estimatedServiceTime) => {
+    if (!estimatedServiceTime) return false;
+    const serviceTime = new Date(estimatedServiceTime);
+    const diffMs = serviceTime - currentTime;
+    return diffMs > 0 && diffMs < 5 * 60 * 1000; // Less than 5 minutes
+  };
+
+  // Format consultation start time
+  const formatStartTime = (startTime) => {
+    if (!startTime) return null;
+    const date = new Date(startTime);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+  };
+
+  // Get display status for current token
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 'IN_CONSULTATION': return { text: 'In Consultation', className: 'status-in-consultation' };
+      case 'CALLED': return { text: 'Called', className: 'status-called' };
+      default: return { text: 'Being Served', className: 'status-serving' };
+    }
+  };
 
   const getPriorityClass = (priority) => {
     switch (priority) {
@@ -121,12 +171,29 @@ const LiveQueueBoard = () => {
                 <div className="section-label">Now Serving</div>
                 {queue.currentToken ? (
                   <div className="current-token active">
-                    <span className="token-number">{queue.currentToken.tokenNumber}</span>
+                    <div className="current-token-header">
+                      <span className="token-number">{queue.currentToken.tokenNumber}</span>
+                      <span className={`consultation-status ${getStatusDisplay(queue.currentToken.status).className}`}>
+                        {getStatusDisplay(queue.currentToken.status).text}
+                      </span>
+                    </div>
                     <span className="patient-name">{queue.currentToken.patientName}</span>
                     {queue.currentToken.priority !== 'NORMAL' && (
                       <span className={`priority-tag ${getPriorityClass(queue.currentToken.priority)}`}>
                         {queue.currentToken.priority}
                       </span>
+                    )}
+                    {queue.currentToken.status === 'IN_CONSULTATION' && queue.currentToken.consultationStartedAt && (
+                      <div className="consultation-time">
+                        <span className="time-label">Started at</span>
+                        <span className="time-value">{formatStartTime(queue.currentToken.consultationStartedAt)}</span>
+                      </div>
+                    )}
+                    {queue.currentToken.status === 'CALLED' && queue.currentToken.calledAt && (
+                      <div className="consultation-time called-time">
+                        <span className="time-label">Called at</span>
+                        <span className="time-value">{formatStartTime(queue.currentToken.calledAt)}</span>
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -157,15 +224,23 @@ const LiveQueueBoard = () => {
                       <div key={token.id} className="waiting-item">
                         <div className="waiting-position">{index + 1}</div>
                         <div className="waiting-details">
-                          <span className="waiting-token">{token.tokenNumber}</span>
+                          <div className="waiting-token">
+                            <span className="token-id">{token.tokenNumber}</span>
+                            {token.priority !== 'NORMAL' && (
+                              <span className={`priority-badge ${getPriorityClass(token.priority)}`}>
+                                {token.priority === 'EMERGENCY' ? '🚨' : 
+                                 token.priority === 'PREGNANT' ? '🤰' : '👴'}
+                              </span>
+                            )}
+                          </div>
                           <span className="waiting-name">{token.patientName}</span>
                         </div>
-                        {token.priority !== 'NORMAL' && (
-                          <span className={`priority-badge ${getPriorityClass(token.priority)}`}>
-                            {token.priority === 'EMERGENCY' ? '🚨' : 
-                             token.priority === 'PREGNANT' ? '🤰' : '👴'}
+                        <div className={`waiting-service-time ${isServiceTimeUrgent(token.estimatedServiceTime) ? 'urgent' : ''}`}>
+                          <span className="service-time-label">Expected At</span>
+                          <span className="service-time-value">
+                            {formatServiceTime(token.estimatedServiceTime) || '--:--:--'}
                           </span>
-                        )}
+                        </div>
                       </div>
                     ))}
                     {queue.waitingTokens.length > 5 && (

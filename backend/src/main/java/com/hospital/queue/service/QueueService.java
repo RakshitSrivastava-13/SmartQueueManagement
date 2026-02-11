@@ -92,6 +92,7 @@ public class QueueService {
     private TokenDTO tokenToDTO(Token token) {
         int position = 0;
         int waitMinutes = 0;
+        LocalDateTime estimatedServiceTime = null;
         
         if (token.getDoctor() != null && token.getStatus() == Token.Status.WAITING) {
             position = tokenRepository.findPositionInDoctorQueue(
@@ -107,6 +108,9 @@ public class QueueService {
             );
             int consultTime = avgTime != null ? avgTime.intValue() : token.getDoctor().getConsultationDurationMinutes();
             waitMinutes = (position - 1) * consultTime;
+            
+            // Calculate exact estimated service time
+            estimatedServiceTime = LocalDateTime.now().plusMinutes(waitMinutes);
         }
 
         return TokenDTO.builder()
@@ -133,6 +137,7 @@ public class QueueService {
                 .queuePosition(position)
                 .patientsAhead(position > 0 ? position - 1 : 0)
                 .estimatedWaitMinutes(waitMinutes)
+                .estimatedServiceTime(estimatedServiceTime)
                 .build();
     }
 }

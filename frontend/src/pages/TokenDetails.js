@@ -9,11 +9,14 @@ const TokenDetails = () => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   const fetchTokenDetails = useCallback(async () => {
     try {
       const response = await tokenAPI.getQueuePosition(tokenNumber);
       setToken(response.data.data);
+      setLastUpdated(new Date());
       setError('');
     } catch (err) {
       setError('Token not found or expired');
@@ -25,10 +28,50 @@ const TokenDetails = () => {
   useEffect(() => {
     fetchTokenDetails();
     
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(fetchTokenDetails, 10000);
+    // Auto-refresh every 5 seconds for real-time updates (like train tracking)
+    const interval = setInterval(fetchTokenDetails, 5000);
     return () => clearInterval(interval);
   }, [fetchTokenDetails]);
+
+  // Update current time every second for live countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Format estimated service time
+  const formatServiceTime = (estimatedServiceTime) => {
+    if (!estimatedServiceTime) return null;
+    const date = new Date(estimatedServiceTime);
+    return date.toLocaleTimeString('en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit',
+      hour12: true 
+    });
+  };
+
+  // Calculate time remaining until service
+  const getTimeRemaining = (estimatedServiceTime) => {
+    if (!estimatedServiceTime) return null;
+    const serviceTime = new Date(estimatedServiceTime);
+    const diffMs = serviceTime - currentTime;
+    
+    if (diffMs <= 0) return { text: 'Any moment now!', urgent: true };
+    
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffSecs = Math.floor((diffMs % 60000) / 1000);
+    
+    if (diffMins < 1) {
+      return { text: `${diffSecs} seconds`, urgent: true };
+    } else if (diffMins < 5) {
+      return { text: `${diffMins}m ${diffSecs}s`, urgent: true };
+    } else {
+      return { text: `${diffMins} min ${diffSecs} sec`, urgent: false };
+    }
+  };
 
   const getStatusClass = (status) => {
     switch (status) {
@@ -122,14 +165,32 @@ const TokenDetails = () => {
               <span className="position-label">Your Position</span>
               <span className="position-number">{token?.queuePosition || '-'}</span>
             </div>
+            
+            {/* Estimated Service Time - Like train tracking */}
+            {token?.estimatedServiceTime && (
+              <div className="estimated-service-time">
+                <div className="service-time-header">
+                  <span className="service-time-icon">🕐</span>
+                  <span className="service-time-label">Expected Service Time</span>
+                </div>
+                <div className="service-time-value">
+                  {formatServiceTime(token.estimatedServiceTime)}
+                </div>
+                <div className={`time-remaining ${getTimeRemaining(token.estimatedServiceTime)?.urgent ? 'urgent' : ''}`}>
+                  <span className="countdown-label">Time Remaining:</span>
+                  <span className="countdown-value">{getTimeRemaining(token.estimatedServiceTime)?.text}</span>
+                </div>
+              </div>
+            )}
+            
             <div className="queue-stats">
               <div className="stat">
                 <span className="stat-value">{token?.patientsAhead || 0}</span>
                 <span className="stat-label">Patients Ahead</span>
               </div>
               <div className="stat">
-                <span className="stat-value">{token?.estimatedWaitMinutes || 0}</span>
-                <span className="stat-label">Est. Wait (min)</span>
+                <span className="stat-value">~{token?.estimatedWaitMinutes || 0} min</span>
+                <span className="stat-label">Est. Wait</span>
               </div>
             </div>
           </div>
@@ -211,7 +272,12 @@ const TokenDetails = () => {
         {/* Auto-refresh indicator */}
         <div className="refresh-indicator">
           <span className="pulse-dot"></span>
-          Auto-refreshing every 10 seconds
+          <span>Live tracking • Updates every 5 seconds</span>
+          {lastUpdated && (
+            <span className="last-updated">
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
         </div>
       </div>
     </div>

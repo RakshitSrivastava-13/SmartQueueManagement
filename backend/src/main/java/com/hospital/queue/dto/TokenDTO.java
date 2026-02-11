@@ -44,5 +44,6 @@ public class TokenDTO {
     // Queue information
     private Integer queuePosition;
     private Integer estimatedWaitMinutes;
+    private LocalDateTime estimatedServiceTime;
     private Integer patientsAhead;
 }

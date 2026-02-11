@@ -114,8 +114,10 @@ public class QueueNotificationService {
             List<Token> waitingTokens = tokenRepository.findWaitingTokensByDoctor(doctorId, LocalDate.now());
             
             String priorityType = getPriorityTypeDescription(priorityToken.getPriority());
-            String reason = String.format("A %s case has been added to the queue and given priority as per our hospital's queue policy.", 
-                    priorityType);
+            String patientName = priorityToken.getPatient().getFirstName() + " " + 
+                    priorityToken.getPatient().getLastName();
+            String reason = String.format("A %s case (%s) has been added to the queue and given priority as per our hospital's queue policy.", 
+                    priorityType, patientName);
             
             int position = 1;
             for (Token token : waitingTokens) {
@@ -132,7 +134,7 @@ public class QueueNotificationService {
                 // Only notify if position actually moved back
                 if (previousPosition != null && position > previousPosition) {
                     int estimatedWaitMinutes = calculateEstimatedWaitTime(token, position);
-                    emailService.sendQueueUpdateEmail(token, position, estimatedWaitMinutes, previousPosition, reason);
+                    emailService.sendQueueUpdateEmail(token, position, estimatedWaitMinutes, previousPosition, reason, patientName);
                     
                     lastNotifiedPosition.put(token.getId(), position);
                     
@@ -158,8 +160,58 @@ public class QueueNotificationService {
             // Remove from tracking
             lastNotifiedPosition.remove(cancelledToken.getId());
             
-            // Notify remaining patients about advancement
-            notifyQueueAdvancement(cancelledToken.getDoctor().getId());
+            String patientName = cancelledToken.getPatient().getFirstName() + " " + 
+                    cancelledToken.getPatient().getLastName();
+            String reason = "A patient (" + patientName + ") has cancelled their token and left the queue.";
+            
+            // Notify remaining patients about advancement with reason
+            notifyQueueAdvancementWithReason(cancelledToken.getDoctor().getId(), reason, patientName);
+        }
+    }
+
+    /**
+     * Called when a consultation ends or a token is completed.
+     * Notifies all affected patients about their new queue position.
+     * Runs asynchronously to avoid transaction conflicts.
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void notifyQueueAdvancementWithReason(Long doctorId, String reason, String causingPatientName) {
+        try {
+            // Small delay to ensure the calling transaction has committed
+            Thread.sleep(500);
+            
+            List<Token> waitingTokens = tokenRepository.findWaitingTokensByDoctor(doctorId, LocalDate.now());
+            
+            int position = 1;
+            for (Token token : waitingTokens) {
+                if (token.getPatient().getEmail() == null) {
+                    position++;
+                    continue;
+                }
+                
+                Integer previousPosition = lastNotifiedPosition.get(token.getId());
+                
+                // Only notify if position actually changed (moved forward)
+                if (previousPosition != null && position < previousPosition) {
+                    int estimatedWaitMinutes = calculateEstimatedWaitTime(token, position);
+                    
+                    // Send notification with reason and patient name who caused the change
+                    emailService.sendQueueUpdateEmail(token, position, estimatedWaitMinutes, previousPosition, reason, causingPatientName);
+                    
+                    lastNotifiedPosition.put(token.getId(), position);
+                    
+                    log.info("Queue advancement notification sent for token {} (moved from {} to {}) - Reason: {}", 
+                            token.getTokenNumber(), previousPosition, position, reason);
+                } else if (previousPosition == null) {
+                    // First time tracking this token, just record position
+                    lastNotifiedPosition.put(token.getId(), position);
+                }
+                
+                position++;
+            }
+        } catch (Exception e) {
+            log.error("Error notifying queue advancement with reason for doctor {}", doctorId, e);
         }
     }
 
@@ -182,7 +234,11 @@ public class QueueNotificationService {
             List<Token> waitingTokens = tokenRepository.findWaitingTokensByDoctor(
                     changedToken.getDoctor().getId(), LocalDate.now());
             
-            String reason = "Queue order has been adjusted based on priority updates.";
+            String patientName = changedToken.getPatient().getFirstName() + " " + 
+                    changedToken.getPatient().getLastName();
+            String priorityType = getPriorityTypeDescription(changedToken.getPriority());
+            String reason = String.format("Priority of patient %s has been changed to %s, affecting queue order.", 
+                    patientName, priorityType);
             
             int position = 1;
             for (Token token : waitingTokens) {
@@ -198,10 +254,10 @@ public class QueueNotificationService {
                     
                     if (position > previousPosition) {
                         // Position moved back
-                        emailService.sendQueueUpdateEmail(token, position, estimatedWaitMinutes, previousPosition, reason);
+                        emailService.sendQueueUpdateEmail(token, position, estimatedWaitMinutes, previousPosition, reason, patientName);
                     } else {
                         // Position moved forward
-                        emailService.sendQueueUpdateEmail(token, position, estimatedWaitMinutes);
+                        emailService.sendQueueUpdateEmail(token, position, estimatedWaitMinutes, previousPosition, reason, patientName);
                     }
                     
                     lastNotifiedPosition.put(token.getId(), position);
@@ -224,7 +280,10 @@ public class QueueNotificationService {
     @Async
     public void notifyNoShowOrSkip(Token token) {
         if (token.getDoctor() != null) {
-            notifyQueueAdvancement(token.getDoctor().getId());
+            String patientName = token.getPatient().getFirstName() + " " + 
+                    token.getPatient().getLastName();
+            String reason = "A patient (" + patientName + ") was marked as no-show and removed from the queue.";
+            notifyQueueAdvancementWithReason(token.getDoctor().getId(), reason, patientName);
         }
     }
 

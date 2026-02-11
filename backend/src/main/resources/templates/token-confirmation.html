@@ -85,13 +85,34 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td style="padding: 15px; background-color: #fff; border: 1px solid #e9ecef; border-top: none; border-radius: 0 0 0 8px; vertical-align: top;">
+                                    <td style="padding: 15px; background-color: #fff; border: 1px solid #e9ecef; border-top: none; vertical-align: top;">
                                         <p style="margin: 0 0 5px 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Room / Counter</p>
                                         <p style="margin: 0; color: #333; font-size: 15px; font-weight: 600;" th:text="${roomNumber}">Room 101</p>
                                     </td>
-                                    <td style="padding: 15px; background-color: #fff; border: 1px solid #e9ecef; border-top: none; border-left: none; border-radius: 0 0 8px 0; vertical-align: top;">
+                                    <td style="padding: 15px; background-color: #fff; border: 1px solid #e9ecef; border-top: none; border-left: none; vertical-align: top;">
                                         <p style="margin: 0 0 5px 0; color: #888; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Current Position</p>
-                                        <p style="margin: 0; color: #333; font-size: 15px; font-weight: 600;" th:text="${currentPosition != null ? currentPosition : 'Processing...'}">1</p>
+                                        <p style="margin: 0; color: #667eea; font-size: 24px; font-weight: 700;" th:text="${currentPosition != null ? currentPosition : 'Calculating...'}">1</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    
+                    <!-- Estimated Service Time Section -->
+                    <tr th:if="${estimatedServiceTime != null}">
+                        <td style="padding: 0 40px 20px 40px;">
+                            <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 25px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 12px; text-align: center;">
+                                        <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.9); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: 600;">
+                                            ⏰ Estimated Service Time
+                                        </p>
+                                        <h2 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: 2px; font-family: 'Consolas', 'Monaco', monospace;" th:text="${estimatedServiceTime}">
+                                            02:45:30 PM
+                                        </h2>
+                                        <p style="margin: 10px 0 0 0; color: rgba(255,255,255,0.85); font-size: 12px;">
+                                            Approx. wait: <strong th:text="${estimatedWaitMinutes}">15</strong> minutes
+                                        </p>
                                     </td>
                                 </tr>
                             </table>

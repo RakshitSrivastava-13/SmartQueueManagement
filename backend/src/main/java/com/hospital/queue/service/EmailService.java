@@ -34,6 +34,11 @@ public class EmailService {
 
     @Async
     public void sendTokenConfirmationEmail(Token token) {
+        sendTokenConfirmationEmail(token, 0, 0);
+    }
+
+    @Async
+    public void sendTokenConfirmationEmail(Token token, int queuePosition, int estimatedWaitMinutes) {
         if (!emailEnabled || token.getPatient().getEmail() == null || token.getPatient().getEmail().isEmpty()) {
             log.info("Email notification skipped - email not enabled or patient has no email");
             return;
@@ -52,6 +57,18 @@ public class EmailService {
             context.setVariable("generatedAt", token.getGeneratedAt().format(DateTimeFormatter.ofPattern("hh:mm a")));
             context.setVariable("priority", token.getPriority().name().replace("_", " "));
             context.setVariable("roomNumber", token.getDoctor() != null ? token.getDoctor().getRoomNumber() : "Will be assigned");
+            
+            // Add queue position and estimated service time
+            context.setVariable("currentPosition", queuePosition > 0 ? queuePosition : null);
+            context.setVariable("estimatedWaitMinutes", estimatedWaitMinutes);
+            
+            // Calculate exact estimated service time in HH:MM:SS format
+            if (queuePosition > 0) {
+                java.time.LocalDateTime estimatedServiceTime = java.time.LocalDateTime.now().plusMinutes(estimatedWaitMinutes);
+                context.setVariable("estimatedServiceTime", estimatedServiceTime.format(DateTimeFormatter.ofPattern("hh:mm:ss a")));
+            } else {
+                context.setVariable("estimatedServiceTime", null);
+            }
 
             String htmlContent = templateEngine.process("token-confirmation", context);
 
@@ -61,7 +78,8 @@ public class EmailService {
                     htmlContent
             );
 
-            log.info("Token confirmation email sent to: {}", token.getPatient().getEmail());
+            log.info("Token confirmation email sent to: {} (Position: {}, Est. Wait: {} min)", 
+                    token.getPatient().getEmail(), queuePosition, estimatedWaitMinutes);
 
         } catch (Exception e) {
             log.error("Failed to send token confirmation email to: {}", token.getPatient().getEmail(), e);
@@ -70,12 +88,18 @@ public class EmailService {
 
     @Async
     public void sendQueueUpdateEmail(Token token, int position, int estimatedWaitMinutes) {
-        sendQueueUpdateEmail(token, position, estimatedWaitMinutes, null, null);
+        sendQueueUpdateEmail(token, position, estimatedWaitMinutes, null, null, null);
     }
 
     @Async
     public void sendQueueUpdateEmail(Token token, int position, int estimatedWaitMinutes, 
                                       Integer previousPosition, String positionChangeReason) {
+        sendQueueUpdateEmail(token, position, estimatedWaitMinutes, previousPosition, positionChangeReason, null);
+    }
+
+    @Async
+    public void sendQueueUpdateEmail(Token token, int position, int estimatedWaitMinutes, 
+                                      Integer previousPosition, String positionChangeReason, String causingPatientName) {
         if (!emailEnabled || token.getPatient().getEmail() == null || token.getPatient().getEmail().isEmpty()) {
             log.info("Queue update email skipped - email not enabled or patient has no email");
             return;
@@ -93,12 +117,19 @@ public class EmailService {
             context.setVariable("roomNumber", token.getDoctor() != null ? token.getDoctor().getRoomNumber() : "Counter");
             context.setVariable("isAlmostTurn", position <= 3);
             
+            // Calculate exact estimated service time in HH:MM:SS format
+            java.time.LocalDateTime estimatedServiceTime = java.time.LocalDateTime.now().plusMinutes(estimatedWaitMinutes);
+            context.setVariable("estimatedServiceTime", estimatedServiceTime.format(DateTimeFormatter.ofPattern("hh:mm:ss a")));
+            
             // Position change tracking for transparency
             boolean positionChanged = previousPosition != null && !previousPosition.equals(position) && previousPosition < position;
+            boolean positionAdvanced = previousPosition != null && !previousPosition.equals(position) && previousPosition > position;
             context.setVariable("positionChanged", positionChanged);
+            context.setVariable("positionAdvanced", positionAdvanced);
             context.setVariable("previousPosition", previousPosition);
             context.setVariable("positionChangeReason", positionChangeReason != null ? positionChangeReason : 
                     "A priority case has been added to the queue ahead of you.");
+            context.setVariable("causingPatientName", causingPatientName);
 
             String htmlContent = templateEngine.process("queue-update", context);
 

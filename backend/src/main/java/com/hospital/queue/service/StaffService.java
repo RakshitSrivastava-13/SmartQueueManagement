@@ -117,6 +117,8 @@ public class StaffService {
 
         if (token.getDoctor() != null) {
             updateQueueStatus(token.getDoctor().getId());
+            // Notify other patients about queue advancement
+            queueNotificationService.notifyTokenCancellation(token);
         }
 
         return toDTO(token);

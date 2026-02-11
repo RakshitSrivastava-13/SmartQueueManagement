@@ -78,8 +78,27 @@ public class TokenService {
         // Record initial position for tracking changes
         queueNotificationService.recordInitialPosition(token);
 
-        // Send token confirmation email
-        emailService.sendTokenConfirmationEmail(token);
+        // Calculate queue position and estimated wait time for confirmation email
+        int queuePosition = 0;
+        int estimatedWaitMinutes = 0;
+        if (doctor != null) {
+            queuePosition = tokenRepository.findPositionInDoctorQueue(
+                    doctor.getId(),
+                    token.getTokenDate(),
+                    token.getPriorityScore(),
+                    token.getGeneratedAt()
+            ) + 1;
+            
+            Double avgTime = tokenRepository.calculateAverageConsultationTime(
+                    doctor.getId(),
+                    LocalDateTime.now().minusDays(30)
+            );
+            int consultTime = avgTime != null ? avgTime.intValue() : doctor.getConsultationDurationMinutes();
+            estimatedWaitMinutes = (queuePosition - 1) * consultTime;
+        }
+
+        // Send token confirmation email with position and estimated time
+        emailService.sendTokenConfirmationEmail(token, queuePosition, estimatedWaitMinutes);
 
         // If this is a priority token, notify other patients in queue about position changes
         if (priority != Token.Priority.NORMAL && doctor != null) {
@@ -266,11 +285,18 @@ public class TokenService {
             );
             dto.setQueuePosition(position + 1);
             dto.setPatientsAhead(position);
-            dto.setEstimatedWaitMinutes(getEstimatedWaitTime(token.getId()));
+            
+            int waitMinutes = getEstimatedWaitTime(token.getId());
+            dto.setEstimatedWaitMinutes(waitMinutes);
+            
+            // Calculate exact estimated service time
+            LocalDateTime estimatedServiceTime = LocalDateTime.now().plusMinutes(waitMinutes);
+            dto.setEstimatedServiceTime(estimatedServiceTime);
         } else {
             dto.setQueuePosition(0);
             dto.setPatientsAhead(0);
             dto.setEstimatedWaitMinutes(0);
+            dto.setEstimatedServiceTime(null);
         }
         
         return dto;
